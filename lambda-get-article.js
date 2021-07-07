@@ -1,4 +1,5 @@
 const utils = require("./utils.js");
+const aws = require("./aws.js");
 
 /**
  * Split a CSV line into fields
@@ -29,15 +30,12 @@ const chooseRandomItem = arr => {
  * The handler which gets triggered by the lambda
  */
 exports.handler = (event, context, callback) => {
-    const articles = process.argv[2];
 
-    if (!articles) {
-        utils.returnError("No URL specified", callback);
-        return;
-    }
-
-    utils.fetch(articles)
+    aws.db.get(utils.config("configTable"), { blog: utils.config("blogName") })
+        .then(articles => articles.Item.articles)
+        .then(utils.fetch)
         .then(csvToObject)
         .then(chooseRandomItem)
-        .then(data => utils.returnSuccess(data, callback));
+        .then(data => utils.returnSuccess(data, callback))
+        .catch(err => console.error("ERROR", err));
 };

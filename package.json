@@ -1,0 +1,15 @@
+{
+  "name": "blog-tweet",
+  "version": "0.0.1",
+  "description": "Automated blog tweeting via AWS lambdas",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Ian Finch",
+  "license": "Apache-2.0",
+  "dependencies": {
+    "aws-sdk": "^2.940.0",
+    "twit": "^2.2.11"
+  }
+}
