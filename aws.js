@@ -16,7 +16,10 @@ if (fs.existsSync(creds)) {
 /**
  * Create our various AWS clients
  */
-const dbClient = new AWS.DynamoDB.DocumentClient();
+const clients = {
+    db: new AWS.DynamoDB.DocumentClient(),
+    sns: new AWS.SNS()
+};
 
 /**
  * Get a value from DynamoDB, from a passed in table and query object
@@ -27,17 +30,45 @@ const dbGet = (table, query) => {
         Key: query
     };
 
-    const request = dbClient.get(params);
+    const request = clients.db.get(params);
     return request.promise();
 };
 
 /**
- * Expose various DynamoDB operations
+ * Write an object to DynamoDB
+ *
+ * Note that 'put' doesn't return the data, so we return it ourselves
  */
-const db = {
-    get: dbGet
+const dbPut = (table, data) => {
+    const params = {
+        TableName: table,
+        Item: data
+    };
+
+    return clients.db.put(params).promise()
+            .then(() => params);
+};
+
+/**
+ * Publish an event to SNS (return a promise)
+ *
+ * I'm using AWS's PascalCase approach to variable naming for this function
+ */
+const snsPublish = (Subject, Message, TopicArn) => {
+
+    if (typeof Message !== "string") {
+        Message = JSON.stringify(Message);
+    }
+
+    return clients.sns.publish({ Message, Subject, TopicArn }).promise();
 };
 
 module.exports = {
-    db
+    db: {
+        get: dbGet,
+        put: dbPut
+    },
+    sns: {
+        publish: snsPublish
+    }
 };

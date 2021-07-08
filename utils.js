@@ -16,8 +16,10 @@ if (fs.existsSync(configFile)) {
  */
 const config = field => {
 
-    if (configData && configData[field]) {
-        return configData[field];
+    if (configData) {
+        return field.split(".").reduce((result, term) => {
+            return (result||{})[term];
+        }, configData);
     }
 
     return null;
@@ -27,7 +29,7 @@ const config = field => {
  * Pass a success message out of a lambda
  */
 const returnSuccess = (msg, callback) => {
-    console.info(JSON.stringify(msg));
+    console.info("SUCCESS", JSON.stringify(msg));
     callback(null, msg);
 };
 
@@ -35,7 +37,7 @@ const returnSuccess = (msg, callback) => {
  * Pass a failure message out of a lambda
  */
 const returnError = (msg, callback) => {
-    console.error(msg);
+    console.error("ERROR", msg);
     callback(msg);
 };
 

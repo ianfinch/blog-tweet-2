@@ -1,5 +1,20 @@
 const lambda = {
-    getArticle: require("./lambda-get-article.js")
+    getArticle: require("./lambda-get-article.js"),
+    tweetArticle: require("./lambda-tweet-article.js")
 };
 
-lambda.getArticle.handler(null, null, () => null);
+
+const fakeSnsPublish = (err, payload) => {
+
+    const fakeSnsEvent = {
+        Records: [{
+            Sns: {
+                Message: JSON.stringify(payload.data)
+            }
+        }]
+    };
+
+    lambda.tweetArticle.handler(fakeSnsEvent, null, () => null);
+};
+
+lambda.getArticle.handler(null, null, fakeSnsPublish);
