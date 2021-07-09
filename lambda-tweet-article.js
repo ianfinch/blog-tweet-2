@@ -48,23 +48,25 @@ const checkForNaturalTweets = tweets => {
 const retweetOrNewTweet = (okayToTweet, tweetInfo, twitter) => {
 
     // Check whether we should just give up
-/*
     if (!okayToTweet) {
         return sendSkippedToSns()
                 .then(() => ({ tweetInfo, tweetResult: null }));
     }
-*/
 
-    // Retweet an existing tweet
+    // Retweet an existing tweet ...
+    let result = null;
     if (tweetInfo.tweet) {
-        console.log("retweet TBD", tweetInfo.tweet);
-        return { tweetInfo, tweetResult: null };
+        result = twitter.post("statuses/retweet/:id", { id: tweetInfo.tweet.tweetId });
+
+    // ... or if it doesn't exist, send a new tweet
+    } else {
+        result = twitter.post("statuses/update", { status: tweetInfo.message + " " + tweetInfo.url });
     }
 
-    // Send a new tweet
-    return twitter.post("statuses/update", { status: tweetInfo.message + " " + tweetInfo.url })
-        .then(tweetResult => ({ tweetInfo, tweetResult }))
-        .then(tweetResult => { sendToSns(tweetResult); return tweetResult });
+    // Send an SNS notification about what we've done
+    return result
+            .then(tweetResult => ({ tweetInfo, tweetResult }))
+            .then(tweetResult => { sendToSns(tweetResult); return tweetResult });
 };
 
 /**
@@ -85,7 +87,7 @@ const sendSkippedToSns = () => {
 const sendToSns = data => {
 
     return aws.sns.publish(
-        "Tweeted about blog: " + data.tweetInfo.url,
+        "Tweeted about blog: " + data.tweetInfo.tweet.url,
         JSON.stringify(data, null, 4),
         utils.config("topics.send-email")
     );
@@ -118,13 +120,24 @@ const updateTweetsTable = ({tweetInfo, tweetResult}) => {
         return null;
     }
 
+    if (tweetResult.data.retweeted_status) {
+        return aws.db.put(utils.config("tables.twitterPosts"), {
+            url: tweetInfo.tweet.url,
+            message: tweetInfo.tweet.message,
+            tweetId: tweetInfo.tweet.tweetId,
+            dates: tweetInfo.tweet.dates.concat(tweetResult.data.created_at),
+            user: tweetInfo.tweet.user,
+            userId: tweetInfo.tweet.userId
+        });
+    }
+
     return aws.db.put(utils.config("tables.twitterPosts"), {
         url: tweetInfo.url,
         message: tweetInfo.message,
-        tweetId: 1,
-        dates: [1, 2, 3],
-        user: "foo",
-        userId: 123
+        tweetId: tweetResult.data.id_str,
+        dates: [ tweetResult.data.created_at ],
+        user: tweetResult.data.user.screen_name,
+        userId: tweetResult.data.user.id_str
     });
 };
 
@@ -137,7 +150,7 @@ const formatResult = result => {
         return "No tweet posted";
     }
 
-    return "Blog post tweeted: " + result.Item.url;
+    return "Blog post tweeted/retweeted: " + result.Item.url;
 };
 
 /**

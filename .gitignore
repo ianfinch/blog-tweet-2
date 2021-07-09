@@ -2,3 +2,4 @@ config.json
 creds.json
 *.zip
 node_modules
+blog-tweet-lookups.json

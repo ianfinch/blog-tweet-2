@@ -32,7 +32,7 @@ const chooseRandomItem = arr => {
 const publishToTweetStream = data => {
 
     return aws.sns.publish("To be tweeted", data, utils.config("topics.tweet-this"))
-            .then(published => ({ data, published }));
+            .then(sns => ({ data, sns }));
 };
 
 /**
