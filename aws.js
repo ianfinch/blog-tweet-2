@@ -35,6 +35,15 @@ const dbGet = (table, query) => {
 };
 
 /**
+ * Grab all a DB's rows
+ */
+const dbScan = (table) => {
+
+    const request = clients.db.scan({ TableName: table });
+    return request.promise();
+};
+
+/**
  * Write an object to DynamoDB
  *
  * Note that 'put' doesn't return the data, so we return it ourselves
@@ -66,7 +75,8 @@ const snsPublish = (Subject, Message, TopicArn) => {
 module.exports = {
     db: {
         get: dbGet,
-        put: dbPut
+        put: dbPut,
+        scan: dbScan
     },
     sns: {
         publish: snsPublish

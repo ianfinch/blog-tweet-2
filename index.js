@@ -39,8 +39,6 @@ const fakeSnsPublish = (payload) => {
     };
 };
 
-// invokeLambda("restoreLookups")();
-
 invokeLambda("getArticle")()
    .then(fakeSnsPublish)
    .then(invokeLambda("tweetArticle"))

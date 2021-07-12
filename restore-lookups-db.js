@@ -23,13 +23,6 @@ const storeTweets = tweets => {
     );
 };
 
-/**
- * The handler which gets triggered by the lambda
- */
-exports.handler = (event, context, callback) => {
-
-    getDbFile("blog-tweet-lookups.json")
-        .then(storeTweets)
-        .then(data => utils.returnSuccess(data, callback))
-        .catch(err => utils.returnError(err, callback));
-};
+getDbFile("blog-tweet-lookups.json")
+    .then(storeTweets)
+    .then(console.log);
