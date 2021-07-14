@@ -86,8 +86,12 @@ const sendSkippedToSns = () => {
  */
 const sendToSns = data => {
 
+    const url = data.tweetInfo.url
+                    ? data.tweetInfo.url
+                    : data.tweetInfo.tweet.url;
+
     return aws.sns.publish(
-        "Tweeted about blog: " + data.tweetInfo.tweet.url,
+        "Tweeted about blog: " + url,
         JSON.stringify(data, null, 4),
         utils.config("topics.send-email")
     );
